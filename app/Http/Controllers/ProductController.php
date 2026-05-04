@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\ProductResource;
 use App\Jobs\SendProductCreatedNotification;
 use App\Models\Product;
 use Illuminate\Http\JsonResponse;
@@ -9,7 +10,7 @@ use Illuminate\Http\Request;
 
 class ProductController extends Controller
 {
-    public function index(Request $request): JsonResponse
+    public function index(Request $request)
     {
         $products = Product::with('category')
             ->when($request->filled('category_id'), fn ($q) => $q->where('category_id', $request->integer('category_id')))
@@ -17,7 +18,7 @@ class ProductController extends Controller
             ->orderByDesc('id')
             ->paginate($request->integer('per_page', 15));
 
-        return response()->json($products);
+        return ProductResource::collection($products);
     }
 
     public function store(Request $request): JsonResponse
@@ -52,7 +53,7 @@ class ProductController extends Controller
 
         $product->update($data);
 
-        return response()->json($product->load('category'));
+        response()->json($product->load('category'));
     }
 
     public function destroy(Product $product): JsonResponse
